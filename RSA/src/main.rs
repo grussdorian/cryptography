@@ -5,6 +5,8 @@ RSA Algorithm, takes input from CLI, encrypts and decrypts the message using RSA
 
 use std::env;
 use dotenv::dotenv;
+use std::fs;
+
 fn mod_pow(base: u64, exponent: u64, modulus: u64) -> u64 {
     if modulus == 1 {
         return 0;
@@ -23,15 +25,25 @@ fn mod_pow(base: u64, exponent: u64, modulus: u64) -> u64 {
 }
 
 fn main() {
-    let args: Vec<String> = env::args().collect();
-
     // Concatenate all arguments into a single string, skipping the first one
     dotenv().ok(); // This will load the .env file at the beginning of your program
 
     let args: Vec<String> = env::args().collect();
+
+    if args.len() < 2 {
+        println!("Usage: cargo run <message>");
+        println!("Example: cargo run Hello, World!");
+        std::process::exit(1);
+    }
+
+    if !fs::metadata(".env").is_ok() {
+        println!("Error: .env file not found");
+        println!("Please ensure the .env file is present and contains the two prime numbers p and q.");
+        println!("Example:\np=11\nq=17");
+        std::process::exit(1);
+    }
+
     let message = args[1..].join(" ");
-    let program_name = args[0].clone();
-    println!("Program name: {}", program_name);
     let p_str = env::var("p").expect("p not found in .env file");
     let q_str = env::var("q").expect("q not found in .env file");
 
@@ -59,7 +71,9 @@ fn main() {
         decrypted_message.push(std::char::from_u32(dcrp as u32).unwrap_or_default());
     }
 
-    println!("{}", message);
+    println!("p: {}\nq: {}\nn: {}\nphi: {}\ne: {}\nd: {}\n", p, q, n, phi, e, d);
+    println!("Public key: ({}, {})", e, n);
+    println!("Private key: ({}, {})", d, n);
     println!("Encrypted message: {}", encrypted_message);
     println!("Decrypted message: {}", decrypted_message);
     println!("Length of message: {}", message.len());
